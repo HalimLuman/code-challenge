@@ -1,0 +1,10 @@
+{
+  "/dashboard/page": "app/dashboard/page.js",
+  "/connections/page": "app/connections/page.js",
+  "/matches/page": "app/matches/page.js",
+  "/messages/page": "app/messages/page.js",
+  "/api/connections/route": "app/api/connections/route.js",
+  "/api/conversations/[id]/messages/route": "app/api/conversations/[id]/messages/route.js",
+  "/api/notifications/route": "app/api/notifications/route.js",
+  "/api/conversations/route": "app/api/conversations/route.js"
+}
