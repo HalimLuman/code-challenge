@@ -31,98 +31,124 @@ The application enables users to define their interests and discover others with
 
 The system is designed to prioritize simplicity, clarity, and maintainability, focusing on core functionality rather than unnecessary complexity.
 
-## 🛠 Documentation & Process
+---
 
-My prompting strategy was iterative and high-level, focusing on guiding system design and feature evolution rather than generating isolated code snippets.
+## 1. Prompts Used
 
-- **"System Design Initialization"**  
+My prompting strategy was iterative and focused on system-level thinking rather than isolated feature generation.
+
+- **System Design Initialization**  
   I first summarized the requirements in my own words and asked the AI to generate a structured Markdown document describing the system architecture and data flow.  
-  This helped establish a clear mental model before writing or generating any code, ensuring that development started from a well-defined foundation rather than ad-hoc implementation.
+  This helped establish a clear mental model before writing or generating any code.
 
-- **"Core Application Scaffold"**  
-  After understanding the architecture, I prompted the AI to generate a minimal working version of the app, including authentication, interest management, and basic matching logic.  
-  The prompt was intentionally scoped to “working but simple” to avoid overengineering and to ensure I had a stable base to iterate on.
+- **Core Application Scaffold**  
+  I then prompted the AI to generate a minimal working version of the app, including authentication, interest management, and basic matching logic.  
+  The goal was to create a stable foundation first, rather than over-engineering early.
 
-- **"Incremental Feature Expansion"**  
-  Instead of requesting everything at once, I added features step by step through focused prompts, including:
-  - Connections system
-  - Messaging
-  - Notifications
-  - Forgot password flow
-  - Anonymous interest submission
-  - User settings (password, privacy)
+- **Incremental Feature Expansion**  
+  Features were added step-by-step through focused prompts:
+  - Connections system  
+  - Messaging  
+  - Notifications  
+  - Forgot password flow  
+  - Anonymous interest submission  
+  - Settings (password, privacy, etc.)
 
-  Each prompt was written to integrate with the existing system without breaking previous functionality, emphasizing consistency and separation of concerns.
+  Each prompt was scoped to integrate safely with existing functionality.
 
-- **"UI/UX Refinement Prompts"**  
-  After the core logic was stable, I shifted focus to UI.  
-  I used descriptive prompts (e.g., “clean, modern, minimal, profile-centric layout”) while also correcting specific issues I observed in the generated UI.  
-  This allowed me to iteratively improve the interface without micromanaging every styling detail.
+- **UI/UX Refinement Prompts**  
+  I used descriptive prompts such as “clean, modern, minimal UI with profile-centric layout” and refined outputs iteratively based on actual UI behavior.
 
-- **"Targeted Fix Prompts"**  
-  For specific issues (e.g., TypeScript errors, UI inconsistencies, or logic bugs), I used precise prompts describing the problem and expected outcome, the way I described the problem was by mentioning the errors in the terminal, devTools and the expected behavior.  
-  This ensured quick resolution without introducing unnecessary changes elsewhere in the codebase.
+- **Targeted Fix Prompts**  
+  For bugs or type issues, I used precise prompts describing the problem and expected behavior, avoiding unnecessary refactors.
 
-- **Connection Deletion Reliability**
-  My initial implementation relied on the client-side Supabase instance with Row Level Security (RLS) policies. In some cases, deletions failed silently due to misconfigured or overly strict policies in different environments.
-  
-  To ensure consistent behavior, I refactored the logic to use a server-side Service Role client with explicit permission checks. This removed dependency on client-side RLS correctness for critical actions, while still maintaining security through controlled server logic.
+---
 
-- **Query Structure & Aliasing**
-  Initially, I used Supabase’s default relational queries for fetching connection data. However, the returned structure did not align cleanly with the UI component expectations, leading to mapping inconsistencies.
-  
-  I adjusted the approach by introducing explicit query aliasing (e.g., `sender:profiles!sender_id`), which made the response shape predictable and easier to work with. This improved both readability and maintainability of the data layer.
+## 2. Iteration & Problem Solving
 
-- **UI Iteration Based on Real Output**
-  The first generated UI met functional requirements but lacked clarity and consistency. Instead of regenerating the entire interface, I iteratively refined specific components by identifying concrete issues (layout spacing, hierarchy, feedback states).
-  
-  This incremental approach allowed controlled improvements without introducing regressions.
+- **Connection Delete Issue**  
+  Initially, deletion was implemented using the client-side Supabase instance with RLS policies. In some cases, deletions failed silently due to environment-specific policy inconsistencies.  
+  I refactored the logic to use a server-side Service Role client with explicit permission checks, ensuring consistent behavior across environments.
 
-  - **Incremental Problem Isolation**
-  Rather than attempting to fix the entire system at once, I addressed issues in isolation, prioritizing critical errors such as TypeScript build failures. This reduced cognitive load and ensured each fix was validated before moving forward.
+- **Query Aliasing**  
+  The first version of the connections query relied on default Supabase relationships, which produced inconsistent data shapes.  
+  I resolved this by introducing explicit aliases (e.g. `sender:profiles!sender_id`), making the response structure predictable and easier to map in the UI.
 
-- **Targeted Code Navigation**
-  Instead of scanning the entire codebase, I used focused searches (e.g., locating matching logic or API handlers) to work only with relevant parts of the system. This kept prompts concise and avoided unnecessary context expansion.
+- **Messaging Settings Debugging (Key Challenge)**  
+  During development, messaging behavior did not match expected settings logic.
 
-- **Stepwise Refactoring Strategy**
-  For larger changes (such as theme removal), I broke the process into controlled steps:
-  1. Update global configuration
-  2. Adjust providers
-  3. Perform bulk class cleanup
-  
-  This prevented intermediate broken states and made debugging significantly easier.
+  Instead of guessing fixes, I investigated the system using:
+  - Browser DevTools (network tab)
+  - Terminal logs from API calls
+  - Inspection of actual Supabase responses
 
-- **Prompt Scope Control**
-  Prompts were intentionally scoped to specific tasks (e.g., “fix this type issue” vs “refactor the app”), which improved response quality and reduced unintended side effects.
+  This allowed me to identify a mismatch between expected and returned data structure.
 
-  - **Intentional Simplification**
-  I removed the `next-themes` dependency and all `dark:` variants, opting for a single, consistent light theme. This reduced complexity, improved performance, and eliminated issues like flash of unstyled content (FOUC).
+  After understanding the real issue, I refined the prompt with precise context about the bug, which resulted in a correct and stable implementation.
 
-- **Pragmatic Matching Logic**
-  Instead of implementing a complex AI-based recommendation system, I retained and optimized a SQL-based interest overlap approach.
-  
-  This decision was based on:
-  - Transparency (easy to understand and debug)
-  - Performance (handled efficiently at the database level)
-  - Scope alignment (sufficient for a minimal system)
+---
 
-- **Feature Prioritization**
-  Focus was placed on delivering a complete, end-to-end user flow (auth → interests → matching → messaging) rather than adding advanced but non-essential features.
+## 3. Context Efficiency
 
-- **Separation of Concerns**
-  Anonymous interest submission was intentionally kept separate from authenticated user data to preserve system clarity and avoid mixing different data ownership models.
+- **Incremental Debugging**  
+  I isolated issues one at a time, starting with critical build and type errors before moving to UI improvements.
 
-  - **Real-Time Interactions**
-  Notifications and messaging currently rely on manual fetching. Integrating Supabase Realtime would significantly improve responsiveness and user experience.
+- **Targeted Code Search**  
+  Instead of loading the full codebase into context, I used focused searches to locate relevant logic (e.g. matching function, messaging API).
 
-- **RLS Policy Refinement**
-  While current Row Level Security policies are functional, they could be further refined for scalability, especially around visibility of interests and connections in more complex scenarios.
+- **Step-by-Step Refactoring**  
+  Larger changes (such as theme removal) were broken into phases:
+  1. Update global config  
+  2. Adjust providers  
+  3. Remove utility classes  
 
-- **Rate Limiting & Abuse Protection**
-  The anonymous interest endpoint could benefit from basic rate limiting or request throttling to prevent misuse.
+  This prevented breaking the app during transitions.
 
-- **Matching Enhancements**
-  The current overlap-based matching could be extended with weighting, ranking, or recency factors to improve relevance as the dataset grows.
+- **Scoped Prompts**  
+  Prompts were kept narrow and task-specific to avoid unintended side effects.
 
-- **UI Feedback & States**
-  Additional loading, empty, and error states across the app would improve overall usability and polish.
+---
+
+## 4. Decision Making
+
+- **Simplification**  
+  I removed `next-themes` and all dark mode utilities to reduce complexity and eliminate visual inconsistencies such as flash of unstyled content (FOUC).
+
+- **Matching Strategy**  
+  Instead of implementing a complex recommendation system, I used a SQL-based intersection approach.  
+  This decision was made for:
+  - Simplicity  
+  - Performance  
+  - Transparency of results  
+
+- **Feature Prioritization**  
+  Focus was placed on completing the full user flow:
+  authentication → interests → matching → messaging → connections
+
+- **Separation of Concerns**  
+  Anonymous interest submissions were kept fully separate from authenticated user data to maintain clear system boundaries.
+
+---
+
+## ⚠️ Potential Improvements
+
+- **Real-time Notifications**  
+  Notifications are currently fetched on demand. Supabase Realtime could improve responsiveness.
+
+- **RLS Hardening**  
+  Row Level Security policies could be further refined for more granular access control at scale.
+
+- **Rate Limiting**  
+  The anonymous interest API could benefit from basic rate limiting to prevent abuse.
+
+- **Matching Improvements**  
+  The current overlap-based matching could be extended with ranking or weighting for better relevance.
+
+- **UI Feedback States**  
+  Additional loading, empty, and error states would improve user experience consistency.
+
+---
+
+## 🧠 Final Note
+
+The system was built through an iterative AI-assisted workflow, combining structured prompting with manual debugging and real system observation. This allowed rapid development while maintaining control over architecture and correctness.
